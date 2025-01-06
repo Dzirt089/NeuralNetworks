@@ -46,8 +46,10 @@
 			{
 				sum += inputs[i] * Weights[i];
 			}
+			if (NeuronType != NeuronType.Input)
+				Output = Sigmoid(sum);
+			else Output = sum;
 
-			Output = Sigmoid(sum);
 			return Output;
 		}
 
@@ -74,7 +76,7 @@
 		{
 			//TODO: delete after test
 			ValidationWeightAndCountSignals(weights.ToList());
-			for(int i = 0; i< weights.Length; i++)
+			for (int i = 0; i < weights.Length; i++)
 			{
 				Weights[i] = weights[i];
 			}
