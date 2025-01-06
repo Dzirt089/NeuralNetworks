@@ -39,11 +39,10 @@
 		/// <returns></returns>
 		public double FeedForward(List<double> inputs)
 		{
-			if (inputs.Count !=  Weights.Count) 
-				throw new Exception("Кол-во входных сигналов не соответсвует кол-ву входных нейронов с весами");
+			ValidationWeightAndCountSignals(inputs);
 
 			double sum = 0;
-			for(int i = 0; i< inputs.Count; i++)
+			for (int i = 0; i < inputs.Count; i++)
 			{
 				sum += inputs[i] * Weights[i];
 			}
@@ -51,6 +50,13 @@
 			Output = Sigmoid(sum);
 			return Output;
 		}
+
+		private void ValidationWeightAndCountSignals(List<double> inputs)
+		{
+			if (inputs.Count != Weights.Count)
+				throw new Exception("Кол-во входных сигналов не соответсвует кол-ву входных нейронов с весами");
+		}
+
 		/// <summary>
 		/// Экспонента в шарпе)))
 		/// Сигмоида в машинном обучении (ML) преобразует любое реальное значение в диапазон от 0 до 1
@@ -63,6 +69,17 @@
 			var result = 1.0 / (1.0 + Math.Pow(Math.E, -x));
 			return result;
 		}
+
+		public void SetWeights(params double[] weights)
+		{
+			//TODO: delete after test
+			ValidationWeightAndCountSignals(weights.ToList());
+			for(int i = 0; i< weights.Length; i++)
+			{
+				Weights[i] = weights[i];
+			}
+		}
+
 
 		public override string ToString()
 		{

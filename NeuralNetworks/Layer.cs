@@ -27,5 +27,15 @@
 			var cheking = neurons.Any(x => x.NeuronType != type);
 			return cheking;
 		}
+
+		public List<double> GetSignals()
+		{
+			var result = new List<double>();
+			foreach (var neuron in Neurons)
+			{
+				result.Add(neuron.Output);
+			}
+			return result;
+		}
 	}
 }
