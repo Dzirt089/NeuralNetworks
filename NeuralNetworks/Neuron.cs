@@ -39,7 +39,8 @@
 		/// <returns></returns>
 		public double FeedForward(List<double> inputs)
 		{
-			if (inputs.Count !=  Weights.Count) return 0;
+			if (inputs.Count !=  Weights.Count) 
+				throw new Exception("Кол-во входных сигналов не соответсвует кол-ву входных нейронов с весами");
 
 			double sum = 0;
 			for(int i = 0; i< inputs.Count; i++)
