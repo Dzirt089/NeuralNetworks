@@ -8,6 +8,10 @@
 		public List<double> Weights { get; }
 
 		/// <summary>
+		/// Храним список всех входных сигналов
+		/// </summary>
+		public List<double> Inputs { get; }
+		/// <summary>
 		/// Тип нейрона
 		/// </summary>
 		public NeuronType NeuronType { get; }
@@ -18,6 +22,11 @@
 		public double Output { get; private set; }
 
 		/// <summary>
+		/// Сохраняем значение делты для нейрона
+		/// </summary>
+		public double Delta { get; private set; }
+
+		/// <summary>
 		/// Конструктор нейрона
 		/// </summary>
 		/// <param name="inputNeuronCount">Кол-во сигналов\связей, которые поступает в нейрон</param>
@@ -26,12 +35,24 @@
 		{
 			NeuronType = type;
 			Weights = new List<double>();
+			Inputs = new List<double>();
+			InitWeightsRandomValue(inputNeuronCount);
+		}
 
+		private void InitWeightsRandomValue(int inputNeuronCount)
+		{
+			var rnd = new Random();
 			for (int i = 0; i < inputNeuronCount; i++)
 			{
-				Weights.Add(1);
+				if (NeuronType == NeuronType.Input)
+					Weights.Add(1);
+				else
+					Weights.Add(rnd.NextDouble());
+
+				Inputs.Add(0);
 			}
 		}
+
 		/// <summary>
 		/// Линейное распространение данных слева направо -> получили результат
 		/// </summary>
@@ -40,6 +61,11 @@
 		public double FeedForward(List<double> inputs)
 		{
 			ValidationWeightAndCountSignals(inputs);
+
+			for (int i = 0; i < Inputs.Count; i++)
+			{
+				Inputs[i] = inputs[i];
+			}
 
 			double sum = 0;
 			for (int i = 0; i < inputs.Count; i++)
@@ -72,16 +98,34 @@
 			return result;
 		}
 
-		public void SetWeights(params double[] weights)
+		private double SigmoidDx(double x)
 		{
-			//TODO: delete after test
-			ValidationWeightAndCountSignals(weights.ToList());
-			for (int i = 0; i < weights.Length; i++)
-			{
-				Weights[i] = weights[i];
-			}
+			var sigmoid = Sigmoid(x);
+			var result = sigmoid / (1 - sigmoid);
+			return result;
 		}
 
+
+		/// <summary>
+		/// Метод для вычесления\балансирования\обучения нейронных весов
+		/// </summary>
+		/// <param name="error">Разница между ожидаемым результатом и фактически полученным результатом выходного нейрона</param>
+		/// <param name="learningRate">Значение для обучения. Чем больше значение, то тем дольше и точнее обучение</param>
+		public void Learn(double error, double learningRate)
+		{
+			if (NeuronType == NeuronType.Input) return;
+
+			Delta = error * SigmoidDx(Output);
+
+			for (int i = 0; i < Weights.Count; i++)
+			{
+				var weight = Weights[i];
+				var input = Inputs[i];
+
+				var newWeight = weight - input * Delta * learningRate;
+				Weights[i] = newWeight;
+			}
+		}
 
 		public override string ToString()
 		{

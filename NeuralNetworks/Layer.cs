@@ -6,14 +6,16 @@
 	public class Layer
 	{
 		public List<Neuron> Neurons { get; }
+		public NeuronType NeuronType { get; }
 		public int NeuroCount => Neurons?.Count ?? 0;
 
-		public Layer(List<Neuron> neurons, NeuronType type = NeuronType.Normal)
+		public Layer(List<Neuron> neurons, NeuronType type = NeuronType.Normal, NeuronType neuronType = default)
 		{
 			if (Validations(neurons, type))
 				throw new Exception("Нейроны не соотвутствуют переданному типу");
 
 			Neurons = neurons;
+			NeuronType = neuronType;
 		}
 
 		/// <summary>
@@ -36,6 +38,12 @@
 				result.Add(neuron.Output);
 			}
 			return result;
+		}
+
+
+		public override string ToString()
+		{
+			return NeuronType.ToString();
 		}
 	}
 }
