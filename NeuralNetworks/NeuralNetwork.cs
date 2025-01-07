@@ -1,5 +1,4 @@
-﻿
-namespace NeuralNetworks
+﻿namespace NeuralNetworks
 {
 	/// <summary>
 	/// Нейронная сеть представляет из себя коллекцию слоёв
@@ -87,22 +86,108 @@ namespace NeuralNetworks
 		/// <summary>
 		/// Метод обучения по набору данных
 		/// </summary>
-		/// <param name="dataset">Первый double - это ожидаемое значение.  double[] - это набор данных </param>
+		/// <param name="expected">это набор всех ожидаемых результатов. Ввиде одномерного массива </param>
+		/// <param name="inputs">это набор данных (входных сигналов). Ввиде двумерного массива</param>
 		/// <param name="epoch">кол-во эпох. Одна эпоха - это одно прохождение DataSet - а</param>
 		/// <returns>среднее значение ошибки</returns>
-		public double Learn(List<Tuple<double, double[]>> dataset, int epoch)
+		public double Learn(double[] expected, double[,] inputs, int epoch)
 		{
 			var error = 0.0;
-
 			for (int i = 0; i < epoch; i++)
 			{
-				foreach (var data in dataset)
+				for (int j = 0; j < expected.Length; j++)
 				{
-					error += Backpropagation(data.Item1, data.Item2);
+					var output = expected[j];
+					var input = GetRow(inputs, j);
+
+					error += Backpropagation(output, input);
 				}
 			}
 
 			var result = error / epoch;
+			return result;
+		}
+
+		public static double[] GetRow(double[,] matrix, int row)
+		{
+			var columns = matrix.GetLength(1);
+			var array = new double[columns];
+			for (int i = 0; i < columns; i++)
+				array[i] = matrix[row, i];
+			return array;
+		}
+
+		/// <summary>
+		/// Алгоритм масштабирования
+		/// </summary>
+		/// <param name="inputs">Все данные из DataSet-a в виде двумерного массива</param>
+		/// <returns>двумерный массив с масштабированными данными</returns>
+		private double[,] Scalling(double[,] inputs)
+		{
+			var result = new double[inputs.GetLength(0), inputs.GetLength(1)];
+
+			//Первый внешний цикл идет по колонкам DataSet-a
+			for (int column = 0; column < inputs.GetLength(1); column++)
+			{
+				//берем первый элемент для начала сравнения
+				var min = inputs[0, column];
+				var max = inputs[0, column];
+				//Второй внутренний цикл, идёт по строкам вниз, находя минимум и мкскимум для масштабирования
+				for (int row = 1; row < inputs.GetLength(0); row++)
+				{
+					var item = inputs[row, column];
+					if (item < min) min = item;
+					if (item > max) max = item;
+				}
+
+				var divider = (max - min);
+				//Проходя ещё раз этот цикл, мы устанавливаем новые данные для сигнала
+				for (int row = 1; row < inputs.GetLength(0); row++)
+				{
+					result[row, column] = (inputs[row, column] - min) / divider;
+				}
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Алгоритм нормализации данных DataSet-a для нейронки
+		/// </summary>
+		/// <param name="inputs">Все данные из DataSet-a в виде двумерного массива</param>
+		/// <returns>двумерный массив с нормализированными данными</returns>
+		private double[,] Normalization(double[,] inputs)
+		{
+			var result = new double[inputs.GetLength(0), inputs.GetLength(1)];
+
+			//Первый внешний цикл идет по колонкам DataSet-a
+			for (int column = 0; column < inputs.GetLength(1); column++)
+			{
+				//Вычисляем среднее значение сигнала нейрона
+				var sum = 0.0;
+				for (int row = 0; row < inputs.GetLength(0); row++)
+				{
+					sum += inputs[row, column];
+				}
+				var average = sum / inputs.GetLength(0);
+
+				//Вычисляем стандартное квадратичное отклонение нейрона 
+				var error = 0.0;
+				for (int row = 0; row < inputs.GetLength(0); row++)
+				{
+					// тут находим сумму значения в двумерном массиве, минус среднее значение сигнала нейрона, возведя выражение в квадрат
+					error += Math.Pow((inputs[row, column] - average), 2);
+				}
+				//сумму делим на кол-во данных в колонке, извлекаем корень из выражения.
+				var standartError = Math.Sqrt(error / inputs.GetLength(0));
+
+
+				//Новое значение сигнала нейрона
+				for (int row = 0; row < inputs.GetLength(0); row++)
+				{
+					result[row, column] = (inputs[row, column] - average) / standartError;
+				}
+			}
 			return result;
 		}
 
