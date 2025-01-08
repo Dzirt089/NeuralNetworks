@@ -66,10 +66,24 @@
 		}
 
 
-		public Neuron FeedForward(params double[] inputSignals)
+		public Neuron Predict(params double[] inputSignals)
 		{
 			if (inputSignals.Length != Topology.InputCount)
 				throw new Exception("Кол-во входных сигналов не соответсвует кол-ву входных нейронов для нашей сети");
+
+			//double[,] inputSignals2D = new double[1, inputSignals.Length];
+			//for (int i = 0; i < inputSignals.Length; i++)
+			//{
+			//	inputSignals2D[0, i] = inputSignals[i];
+			//}
+
+			//var normalizedSignals2D = Scalling(inputSignals2D);
+			//double[] normalizedSignals = new double[normalizedSignals2D.GetLength(1)];
+			//for (int i = 0; i < normalizedSignals2D.GetLength(1); i++)
+			//{
+			//	normalizedSignals[i] = normalizedSignals2D[0, i];
+			//}
+
 			SendSignalsToInputNeurons(inputSignals);
 			FeedForwardAllLayersAfterInput();
 
@@ -92,7 +106,7 @@
 		/// <returns>среднее значение ошибки</returns>
 		public double Learn(double[] expected, double[,] inputs, int epoch)
 		{
-			var signals = Normalization(inputs);
+			//var normalizedInputs = Scalling(inputs);
 
 			var error = 0.0;
 			for (int i = 0; i < epoch; i++)
@@ -100,7 +114,7 @@
 				for (int j = 0; j < expected.Length; j++)
 				{
 					var output = expected[j];
-					var input = GetRow(signals, j);
+					var input = GetRow(inputs, j);
 
 					error += Backpropagation(output, input);
 				}
@@ -124,7 +138,7 @@
 		/// </summary>
 		/// <param name="inputs">Все данные из DataSet-a в виде двумерного массива</param>
 		/// <returns>двумерный массив с масштабированными данными</returns>
-		private double[,] Scalling(double[,] inputs)
+		public double[,] Scalling(double[,] inputs)
 		{
 			var result = new double[inputs.GetLength(0), inputs.GetLength(1)];
 
@@ -158,36 +172,38 @@
 		/// </summary>
 		/// <param name="inputs">Все данные из DataSet-a в виде двумерного массива</param>
 		/// <returns>двумерный массив с нормализированными данными</returns>
-		private double[,] Normalization(double[,] inputs)
+		public double[,] Normalization(double[,] inputs)
 		{
-			var result = new double[inputs.GetLength(0), inputs.GetLength(1)];
+			int numRows = inputs.GetLength(0);
+			int numCols = inputs.GetLength(1);
+			var result = new double[numRows, numCols];
 
 			//Первый внешний цикл идет по колонкам DataSet-a
-			for (int column = 0; column < inputs.GetLength(1); column++)
+			for (int column = 0; column < numCols; column++)
 			{
 				//Вычисляем среднее значение сигнала нейрона
-				var sum = 0.0;
-				for (int row = 0; row < inputs.GetLength(0); row++)
+				double sum = 0;
+				for (int row = 0; row < numRows; row++)
 				{
 					sum += inputs[row, column];
 				}
-				var average = sum / inputs.GetLength(0);
+				var average = numRows > 0 ? sum / numRows : 0;
 
 				//Вычисляем стандартное квадратичное отклонение нейрона 
-				var error = 0.0;
-				for (int row = 0; row < inputs.GetLength(0); row++)
+				double error = 0;
+				for (int row = 0; row < numRows; row++)
 				{
 					// тут находим сумму значения в двумерном массиве, минус среднее значение сигнала нейрона, возведя выражение в квадрат
 					error += Math.Pow((inputs[row, column] - average), 2);
 				}
 				//сумму делим на кол-во данных в колонке, извлекаем корень из выражения.
-				var standartError = Math.Sqrt(error / inputs.GetLength(0));
+				var standartError = numRows > 0 ? Math.Sqrt(error / numRows) : 1;
 
 
 				//Новое значение сигнала нейрона
-				for (int row = 0; row < inputs.GetLength(0); row++)
+				for (int row = 0; row < numRows; row++)
 				{
-					result[row, column] = (inputs[row, column] - average) / standartError;
+					result[row, column] = standartError != 0 ? (inputs[row, column] - average) / standartError : 0;
 				}
 			}
 			return result;
@@ -202,7 +218,7 @@
 		private double Backpropagation(double exprected,
 			params double[] inputs)
 		{
-			var actual = FeedForward(inputs).Output;
+			var actual = Predict(inputs).Output;
 
 			var difference = actual - exprected;
 			foreach (var neuron in Layers.Last().Neurons)

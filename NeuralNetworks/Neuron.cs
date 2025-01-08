@@ -24,7 +24,7 @@
 		/// <summary>
 		/// Сохраняем значение делты для нейрона
 		/// </summary>
-		public double Delta { get; private set; }
+		public double Delta {  get; private set; }
 
 		/// <summary>
 		/// Конструктор нейрона
@@ -44,11 +44,7 @@
 			var rnd = new Random();
 			for (int i = 0; i < inputNeuronCount; i++)
 			{
-				if (NeuronType == NeuronType.Input)
-					Weights.Add(1);
-				else
-					Weights.Add(rnd.NextDouble());
-
+				Weights.Add(rnd.NextDouble());
 				Inputs.Add(0);
 			}
 		}
@@ -62,7 +58,7 @@
 		{
 			ValidationWeightAndCountSignals(inputs);
 
-			for (int i = 0; i < Inputs.Count; i++)
+			for(int i = 0; i<Inputs.Count; i++)
 			{
 				Inputs[i] = inputs[i];
 			}
@@ -105,6 +101,15 @@
 			return result;
 		}
 
+		public void SetWeights(params double[] weights)
+		{
+			//TODO: delete after test
+			ValidationWeightAndCountSignals(weights.ToList());
+			for (int i = 0; i < weights.Length; i++)
+			{
+				Weights[i] = weights[i];
+			}
+		}
 
 		/// <summary>
 		/// Метод для вычесления\балансирования\обучения нейронных весов
@@ -117,7 +122,7 @@
 
 			Delta = error * SigmoidDx(Output);
 
-			for (int i = 0; i < Weights.Count; i++)
+			for(int i = 0; i < Weights.Count; i++)
 			{
 				var weight = Weights[i];
 				var input = Inputs[i];

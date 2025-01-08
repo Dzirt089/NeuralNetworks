@@ -8,29 +8,30 @@ namespace NeuralNetworks
 		public int Height { get; set; }
 		public int Width { get; set; }
 
-		public List<int> Convert(string path)
+		public double[] Convert(string path)
 		{
 			if (string.IsNullOrEmpty(path)) return [];
 
 			Bitmap image = new Bitmap(path);
-			var size = image.Width * image.Height;
+			var resizeImage = new Bitmap(image, new Size(100, 100));
+			var size = resizeImage.Width * resizeImage.Height;
 			
-			Height = image.Height;
-			Width = image.Width;
+			Height = resizeImage.Height;
+			Width = resizeImage.Width;
 
-			var result = new List<int>(size);
+			var result = new List<double>(size);
 
-			for (int y = 0; y < image.Height; y++)
+			for (int y = 0; y < resizeImage.Height; y++)
 			{
-				for (int x = 0; x < image.Width; x++)
+				for (int x = 0; x < resizeImage.Width; x++)
 				{
-					var pixel = image.GetPixel(x, y);
+					var pixel = resizeImage.GetPixel(x, y);
 					var value = Brightness(pixel);
 					result.Add(value);
 				}
 			}			
 
-			return result;
+			return result.ToArray();
 		}
 
 		private int Brightness(Color pixel)
@@ -39,7 +40,7 @@ namespace NeuralNetworks
 			return result < Boundary ? 0 : 1;
 		}
 
-		public void Save(string path, List<int> pixels)
+		public void Save(string path, double[] pixels)
 		{
 			var image = new Bitmap(Width, Height);
 			for (int y = 0; y < image.Height; y++)
